@@ -2,29 +2,46 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from '../index.module.less';
 
 const getEnvValue = (keys: string[]): string => {
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+  // 首先检查 import.meta.env（Vite 方式）
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
     for (const key of keys) {
-      const val = (import.meta as any).env?.[key];
-      if (val) return val as string;
+      const val = import.meta.env[key];
+      if (val && val !== 'undefined' && val !== 'null') {
+        console.log(`Found ${key} in import.meta.env:`, val.substring(0, 5) + '...');
+        return val;
+      }
     }
   }
+  
+  // 检查 process.env（Node.js 方式）
   if (typeof process !== 'undefined' && process.env) {
     for (const key of keys) {
       const val = process.env[key];
-      if (val) return val;
+      if (val && val !== 'undefined' && val !== 'null') {
+        console.log(`Found ${key} in process.env:`, val.substring(0, 5) + '...');
+        return val;
+      }
     }
   }
+  
+  // 检查 window.__ENV__（全局变量方式）
   if (typeof window !== 'undefined' && (window as any).__ENV__) {
     for (const key of keys) {
-      const val = (window as any).__ENV__?.[key];
-      if (val) return val;
+      const val = (window as any).__ENV__[key];
+      if (val && val !== 'undefined' && val !== 'null') {
+        console.log(`Found ${key} in window.__ENV__:`, val.substring(0, 5) + '...');
+        return val;
+      }
     }
   }
+  
+  console.log('No environment variable found for keys:', keys);
   return '';
 };
 
-const ARK_KEY_CANDIDATES = ['VITE_ARK_API_KEY', 'NEXT_PUBLIC_ARK_API_KEY', 'ARK_API_KEY'];
-const IMGBB_KEY_CANDIDATES = ['VITE_IMGBB_API_KEY', 'NEXT_PUBLIC_IMGBB_API_KEY', 'IMGBB_API_KEY'];
+// Vercel 部署时建议使用 VITE_ 前缀的环境变量
+const ARK_KEY_CANDIDATES = ['VITE_ARK_API_KEY', 'ARK_API_KEY', 'NEXT_PUBLIC_ARK_API_KEY'];
+const IMGBB_KEY_CANDIDATES = ['VITE_IMGBB_API_KEY', 'IMGBB_API_KEY', 'NEXT_PUBLIC_IMGBB_API_KEY'];
 
 const getArkEnvKey = () => getEnvValue(ARK_KEY_CANDIDATES);
 const getImgbbEnvKey = () => getEnvValue(IMGBB_KEY_CANDIDATES);

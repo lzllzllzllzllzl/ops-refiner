@@ -1,0 +1,26 @@
+{
+  "id": 54200,
+  "name": "eff-me-eff-me-aiapp-gen-app-29edde2",
+  "abbrName": "EF",
+  "description": "",
+  "devMode": 2,
+  "status": null,
+  "url": null,
+  "databaseHost": null,
+  "databasePort": null,
+  "databaseName": null,
+  "databaseUsername": null,
+  "databasePassword": null,
+  "projectInfo": {
+    "JD": {
+      "jd_6a9e8c397c277": [
+        {
+          "jd_6a9e8c397c277": {
+            "projectId": 54200,
+            "appId": "24048"
+          }
+        }
+      ]
+    }
+  }
+}

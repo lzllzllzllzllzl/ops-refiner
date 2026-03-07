@@ -1,0 +1,39 @@
+{
+  "name": "eff-me-eff-me-aiapp-gen-app",
+  "version": "0.0.7",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "clean": "rm -rf node_modules dist .turbo"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@ant-design/icons": "4.8.3",
+    "@types/react": "18.2.6",
+    "@types/react-dom": "18.2.4",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "8.54.0",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-i18next": "^6.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-only-warn": "1.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "less": "^4.2.0",
+    "prettier": "2.8.8",
+    "typescript": "5.3.3",
+    "vite": "^5.0.10"
+  }
+}

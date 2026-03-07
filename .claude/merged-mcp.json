@@ -1,0 +1,70 @@
+{
+  "mcpServers": {
+    "knowledge": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry=http://registry.m.jd.com",
+        "-y",
+        "@jd/joygen-knowledge-mcp"
+      ]
+    },
+    "joytable": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry",
+        "http://registry.m.jd.com/",
+        "@jdei/mcp-server-supabase@0.0.5"
+      ]
+    },
+    "joygen-sheet-upload-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry",
+        "http://registry.m.jd.com/",
+        "@jdei/joysheet-mcp-server@1.0.5"
+      ]
+    },
+    "joysky": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry",
+        "http://registry.m.jd.com/",
+        "@jdei/joysky-mcp-server"
+      ],
+      "env": {
+        "JOYSKY_API_BASE": "http://pre.joysky-gateway.jd.com",
+        "JOYSKY_COOKIE": "focus-login-switch=saas; __jdu=1768437896582570137249; shshshfpa=f5d6eca2-5223-db14-4fd6-033b4577b731-1768527788; shshshfpx=f5d6eca2-5223-db14-4fd6-033b4577b731-1768527788; pinId=8_EGq5j-hbXwTvHoqqxfxrV9-x-f3wj7; pin=jd_6a9e8c397c277; unick=%E7%8B%97%E7%8B%97%E7%AB%8B002; TrackID=1MhW-tQHiXzD8y2iC0_0Umt9l_i1iQFEhhH-FnnztxJr09LM9LNz7BABmHY-eramdVX9QOXTd4aeJvIRID_czEmzQCWpC2jm5ufLMVhJDxqk; light_key=AASBKE7rOxgWQziEhC_QY6ya5a3R-1LcjzlGDYKhEG_5QD6QGDlvJ22quD4bsDZ6TfeAYWkG; sso.jd.com=BJ.413C492F64D4054904CA0F683E2E5AC9.2920260209132715; ssa.ticket=BJ.F7118FDBD06437CD068537C5B588D54D.7920260209132715S; __jdv=181111935|direct|-|none|-|1772074589293; areaId=1; ipLoc-djd=1-2809-51231-0; focus-team-id=00046419; me_token=ee.TGtjAtUZZjmKhIVpw2SFjJ-StGNU0Jy4mboS0urMaKGB4wj-vdmPXBTaVy0IJys6KZGxesol1gaxyoOSAW-_WQ.kbwXYek2vSFSt93DKVEt2Q.QRCbNduNoy9exICPmYRNUA; ssa.global.ticket=342BB690196B4683CF5843BAE099DC9F; thor=597E329F9F72333FB34D8E29DDCE673C8791DC9F2EE47010D1BA6D998C0DC21F784EEA4DD3C0AD45D27D997F612C8826420886BCCE1232FDB0FF65378972500A234087E87965B2A1EC58A55A2710E0F9543F8F4F58240E77F2383ABB5AC2E6254E26CD00864993A0FBC2187A93C960610AE45BF75752A88FE0931A95CDF3B5EAAFAA529EDFF94E72DA3F6A25A12D2106D7C4E03EC985CE503772E9C4367F8EAC; 3AB9D23F7A4B3C9B=3PGCQHKVDHGDFRCGNATLCRRCIC2FX3S6NXUXXRRXNKCJDY3IO5JFBYKGK6ASM7R3T6YKWTBBZHKOD6SWINHWAIULP4; shshshfpb=BApXWtJHJwflAIEKyoGQ1oP0fakz-sQbrBioTcKd29xJ1ItZfQtDXyx-zj3ijZIUhJOKUQaiON-JVR4gH2JMM4ootN1GzrT-TQeLVcG4xasU; osw-lang=zh_CN; osw_site_code=osw; osw_erp=linzhili.5; osw_organization=%252F00000000%252F00013807%252F00113128%252F00117997%252F00135042; osw_business_list=osw_fivestars; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IllxWlRSR21nQ3Rwd0Z3amhScHhVIiwiZXhwIjoxNzczMDQ3MzMyLCJpYXQiOjE3NzI0NDI1MzJ9.l62IlQXpuVU02uuPXzU1PXHuUh6EJ5PkmaDFSjcZUEU; iam_token=eyJhbGciOiJIUzI1NiJ9.eyJ0bSI6IntcImV4cGlyZVwiOjE3NzI4ODkxMTg5ODcsXCJjcmVhdGVkVGltZVwiOjE3NzI4MDI3MTg5ODcsXCJoYXNPdHBcIjp0cnVlLFwiaWRcIjpcIjM1MWUwN2Q1OTIwZWFhYmJkYjc2ODg1YWY1MDY0M2U3aGlvaFwiLFwic25cIjpcIlcyQ0czQ0UwMkVTXCIsXCJlcnBcIjpcImxpbnpoaWxpLjVcIixcInN0YXR1c1wiOlwiXCIsXCJjb2RlXCI6XCJcIixcInZFcnBcIjpcImxpbnpoaWxpLjVcIixcImlwXCI6XCJcIixcInVzZXJBZ2VudFwiOlwiXCIsXCJvbmxpbmVTdGF0dXNcIjpcIm9ubGluZVwiLFwic3NvVG9rZW5FbmNyeXB0XCI6XCJcIixcInRydXN0ZWREZXZpY2VcIjpcIjFcIixcImJyb3dzZXJGcFwiOlwiXCIsXCJwaW5cIjpcImpkXzZhOWU4YzM5N2MyNzdcIn0iLCJleHAiOjE3NzI4ODkxMTh9.ObKRy6uADK0MJkAoHH0HFmG8u5ijWRfczN_56pyIOB4; focus-client=WEB; RT=\"z=1&dm=jd.com&si=r81buyf3foc&ss=mmewjq7e&sl=b&tt=2a6&ld=3a4ai&ul=3aep5&hd=3aepl\"; 3AB9D23F7A4B3CSS=jdd033PGCQHKVDHGDFRCGNATLCRRCIC2FX3S6NXUXXRRXNKCJDY3IO5JFBYKGK6ASM7R3T6YKWTBBZHKOD6SWINHWAIULP4AAAAM4YPBYO4YAAAAADONSEQWHMM5X6EX; flash=3_OGg4Bu7WTnJfHsq26e3lW-LhMrMHPu3UsEW_j2cf7vgsI-c0Q_aO5jB0ycDMXSs1TzMAD_uKny-Gdn4WzFiPHIjhsomxQ8MpTlSscPmuwGFfOf4KWQL6F4jkIEGWCAEtKakN-4ptOaGcP4-VbjkrbSPoSKiC; xingyun-lang=zh-CN; __jda=137579179.1768437896582570137249.1768437897.1772806197.1772810729.108; __jdc=137579179; focus-token-type=15"
+      }
+    },
+    "joygen-joyagent-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry",
+        "http://registry.m.jd.com/",
+        "@jdei/joyagent-mcp"
+      ]
+    },
+    "joygen-skill-publish-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "--registry",
+        "http://registry.m.jd.com/",
+        "@jdei/skill-mcp-server@1.0.3"
+      ]
+    },
+    "time": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-time"
+      ]
+    }
+  }
+}

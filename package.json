@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@ant-design/icons": "4.8.3",
+    "@types/node": "^25.3.5",
     "@types/react": "18.2.6",
     "@types/react-dom": "18.2.4",
     "@typescript-eslint/eslint-plugin": "^6.21.0",

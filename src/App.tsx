@@ -2,44 +2,66 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from '../index.module.less';
 
 const getEnvValue = (keys: string[]): string => {
-  // 首先检查 import.meta.env（Vite 方式）
+  console.log('=== Trying to get environment value ===');
+  console.log('Keys to try:', keys);
+  
+  // 首先检查 import.meta.env（Vite 方式）- 在 Vercel 部署时这是最可靠的方式
   if (typeof import.meta !== 'undefined' && import.meta.env) {
+    console.log('import.meta.env exists');
+    console.log('import.meta.env content:', JSON.stringify(import.meta.env, null, 2));
+    
     for (const key of keys) {
       const val = import.meta.env[key];
-      if (val && val !== 'undefined' && val !== 'null') {
+      console.log(`Checking import.meta.env[${key}]:`, val, typeof val);
+      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
         console.log(`Found ${key} in import.meta.env:`, val.substring(0, 5) + '...');
         return val;
       }
     }
+  } else {
+    console.log('import.meta.env not available');
   }
   
   // 检查 process.env（Node.js 方式）
   if (typeof process !== 'undefined' && process.env) {
+    console.log('process.env exists');
+    console.log('process.env content:', JSON.stringify(process.env, null, 2));
+    
     for (const key of keys) {
       const val = process.env[key];
-      if (val && val !== 'undefined' && val !== 'null') {
+      console.log(`Checking process.env[${key}]:`, val, typeof val);
+      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
         console.log(`Found ${key} in process.env:`, val.substring(0, 5) + '...');
         return val;
       }
     }
+  } else {
+    console.log('process.env not available');
   }
   
   // 检查 window.__ENV__（全局变量方式）
   if (typeof window !== 'undefined' && (window as any).__ENV__) {
+    console.log('window.__ENV__ exists');
+    console.log('window.__ENV__ content:', JSON.stringify((window as any).__ENV__, null, 2));
+    
     for (const key of keys) {
       const val = (window as any).__ENV__[key];
-      if (val && val !== 'undefined' && val !== 'null') {
+      console.log(`Checking window.__ENV__[${key}]:`, val, typeof val);
+      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
         console.log(`Found ${key} in window.__ENV__:`, val.substring(0, 5) + '...');
         return val;
       }
     }
+  } else {
+    console.log('window.__ENV__ not available');
   }
   
   console.log('No environment variable found for keys:', keys);
   return '';
 };
 
-// Vercel 部署时建议使用 VITE_ 前缀的环境变量
+// Vercel 部署时必须使用 VITE_ 前缀的环境变量
+// 确保用户在 Vercel 中添加的环境变量名是 VITE_ARK_API_KEY 和 VITE_IMGBB_API_KEY
 const ARK_KEY_CANDIDATES = ['VITE_ARK_API_KEY', 'ARK_API_KEY', 'NEXT_PUBLIC_ARK_API_KEY'];
 const IMGBB_KEY_CANDIDATES = ['VITE_IMGBB_API_KEY', 'IMGBB_API_KEY', 'NEXT_PUBLIC_IMGBB_API_KEY'];
 

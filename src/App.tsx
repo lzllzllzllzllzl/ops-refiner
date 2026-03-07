@@ -1,68 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from '../index.module.less';
 
-// 根据 Vercel 官方文档，对于前端应用，环境变量需要使用特定的前缀
-// 对于 Vite 项目，VITE_ 前缀的变量会自动暴露到客户端
-const getEnvValue = (keys: string[]): string => {
-  console.log('=== Trying to get environment value ===');
-  console.log('Keys to try:', keys);
-  
-  // 1. 首先尝试 Vite 特定的 import.meta.env（这是推荐方式）
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    console.log('import.meta.env is available');
-    console.log('import.meta.env content:', JSON.stringify(import.meta.env, null, 2));
-    
-    for (const key of keys) {
-      const val = import.meta.env[key];
-      console.log(`Checking import.meta.env[${key}]:`, val, typeof val);
-      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
-        console.log(`✅ Found ${key} in import.meta.env:`, val.substring(0, 5) + '...');
-        return val;
-      }
-    }
-  }
-  
-  // 2. 尝试 process.env（Node.js 或 Webpack 方式）
-  if (typeof process !== 'undefined' && process.env) {
-    console.log('process.env is available');
-    console.log('process.env content:', JSON.stringify(process.env, null, 2));
-    
-    for (const key of keys) {
-      const val = process.env[key];
-      console.log(`Checking process.env[${key}]:`, val, typeof val);
-      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
-        console.log(`✅ Found ${key} in process.env:`, val.substring(0, 5) + '...');
-        return val;
-      }
-    }
-  }
-  
-  // 3. 尝试 window.__ENV__（全局变量方式）
-  if (typeof window !== 'undefined' && (window as any).__ENV__) {
-    console.log('window.__ENV__ is available');
-    console.log('window.__ENV__ content:', JSON.stringify((window as any).__ENV__, null, 2));
-    
-    for (const key of keys) {
-      const val = (window as any).__ENV__[key];
-      console.log(`Checking window.__ENV__[${key}]:`, val, typeof val);
-      if (val && val !== 'undefined' && val !== 'null' && val.trim() !== '') {
-        console.log(`✅ Found ${key} in window.__ENV__:`, val.substring(0, 5) + '...');
-        return val;
-      }
-    }
-  }
-  
-  console.log('❌ No environment variable found for keys:', keys);
-  return '';
+// 对于 Vite 项目，VITE_ 前缀的环境变量会自动暴露到客户端
+// ImgBB Key 可以通过环境变量 VITE_IMGBB_API_KEY 或右上角输入
+const getImgbbEnvKey = (): string => {
+  return import.meta.env.VITE_IMGBB_API_KEY || 'bee27e6d4b59730243e9707abbd52d49';
 };
-
-// 对于 Vite 项目，必须使用 VITE_ 前缀的环境变量才能在客户端访问
-// 在 Vercel 上部署时，请确保设置的环境变量名称包含 VITE_ 前缀
-const ARK_KEY_CANDIDATES = ['VITE_ARK_API_KEY', 'ARK_API_KEY', 'NEXT_PUBLIC_ARK_API_KEY'];
-const IMGBB_KEY_CANDIDATES = ['VITE_IMGBB_API_KEY', 'IMGBB_API_KEY', 'NEXT_PUBLIC_IMGBB_API_KEY'];
-
-const getArkEnvKey = () => getEnvValue(ARK_KEY_CANDIDATES);
-const getImgbbEnvKey = () => getEnvValue(IMGBB_KEY_CANDIDATES);
 
 // 主图优化场景
 const MAIN_IMAGE_SCENARIOS = [
@@ -119,11 +62,9 @@ const ImagePromptGenerator: React.FC = () => {
     productCount: 2,
   });
 
-  const [runtimeArkKey, setRuntimeArkKey] = useState('');
   const [runtimeImgbbKey, setRuntimeImgbbKey] = useState('');
 
   useEffect(() => {
-    setRuntimeArkKey(getArkEnvKey());
     setRuntimeImgbbKey(getImgbbEnvKey());
   }, []);
 
@@ -314,51 +255,21 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
     setOptimizing(true);
 
     try {
-      const arkApiKey = runtimeArkKey || getArkEnvKey();
-      if (!arkApiKey) {
-        throw new Error('缺少 Ark API Key，请在环境变量中配置 ARK_API_KEY（或 VITE_/NEXT_PUBLIC_ 前缀），或在右上角填入临时 Key');
-      }
-
-      const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/responses', {
+      const response = await fetch('/api/optimize-prompt', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${arkApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'doubao-seed-1-6-251015',
-          input: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'input_text',
-                  text: `你是一个专业的电商图片Prompt优化专家。请帮我优化以下Prompt，使其更加专业、详细、易于AI理解。保持原有核心要求不变，增强细节描述和视觉指引。
-
-原始Prompt：
-${generatedPrompt}
-
-请输出优化后的Prompt（直接输出Prompt内容，不要有其他说明）：`,
-                },
-              ],
-            },
-          ],
-        }),
+        body: JSON.stringify({ prompt: generatedPrompt }),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      let optimizedText = '';
-
-      if (data.output && Array.isArray(data.output)) {
-        const messageOutput = data.output.find((item: any) => item.type === 'message');
-        if (messageOutput && messageOutput.content && messageOutput.content[0] && messageOutput.content[0].text) {
-          optimizedText = messageOutput.content[0].text;
-        }
-      }
+      const optimizedText = data.optimizedPrompt;
 
       if (optimizedText) {
         setOptimizedPrompt(optimizedText);
@@ -444,84 +355,38 @@ ${generatedPrompt}
     setGeneratedImageUrl('');
 
     try {
-      const requestBody: any = {
+      const payload = {
         model: 'doubao-seedream-4-5-251128',
         prompt,
-        response_format: 'url',
-        size: '2K',
-        stream: false,
-        watermark: false,
-        sequential_image_generation: 'disabled',
+        image: promptType === 'main_image' ? uploadedImages[0] : uploadedImages,
       };
 
-      if (promptType === 'main_image') {
-        requestBody.image = uploadedImages[0];
-        console.log('📤 单图生单图模式');
-        console.log('图片URL:', uploadedImages[0]);
-      } else {
-        requestBody.image = uploadedImages;
-        console.log('📤 多图生单图模式');
-        console.log('图片数量:', uploadedImages.length);
-        console.log('图片URLs:', uploadedImages);
-      }
-
-      console.log('完整请求体:', JSON.stringify(requestBody, null, 2));
-
-      const arkApiKey = runtimeArkKey || getArkEnvKey();
-      if (!arkApiKey) {
-        throw new Error('缺少 Ark API Key，请在环境变量中配置 ARK_API_KEY（或 VITE_/NEXT_PUBLIC_ 前缀），或在右上角填入临时 Key');
-      }
-
-      const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/images/generations', {
+      const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${arkApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API错误响应:', errorText);
-
+        let errorMessage = '';
         try {
-          const errorJson = JSON.parse(errorText);
-          const errorCode = errorJson.error?.code;
-          const errorMessage = errorJson.error?.message;
-
-          console.error('错误码:', errorCode);
-          console.error('错误信息:', errorMessage);
-
-          if (errorCode === 'InvalidParameter.UnsupportedImageFormat') {
-            alert('图片格式不支持\n\n可能原因:\n1. 图片不是 JPG/PNG/WebP/BMP/TIFF/GIF 格式\n2. 图片URL无法被API访问(请确保图片可公网访问)\n3. 图片大小超过10MB\n4. 图片宽高比不在[1/16, 16]范围内\n\n建议: 请重新上传符合要求的图片');
-          } else {
-            alert(`生成失败\n错误码: ${errorCode}\n错误信息: ${errorMessage || errorText}`);
-          }
+          const errorJson = await response.json();
+          errorMessage = errorJson.error || JSON.stringify(errorJson);
         } catch {
-          alert(`生成失败: ${errorText}`);
+          errorMessage = await response.text();
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('❌ 生成失败:', errorMessage);
+        alert(`生成失败: ${errorMessage || `HTTP ${response.status}`}`);
+        throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ API成功响应:', JSON.stringify(data, null, 2));
 
-      if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-        const firstImage = data.data[0];
-
-        if (firstImage.url) {
-          setGeneratedImageUrl(firstImage.url);
-          console.log('✨ 生成的图片URL:', firstImage.url);
-          console.log('图片尺寸:', firstImage.size);
-          console.log('成功生成图片数量:', data.data.length);
-        } else if (firstImage.error) {
-          console.error('❌ 图片生成失败:', firstImage.error);
-          alert(`图片生成失败\n错误码: ${firstImage.error.code}\n错误信息: ${firstImage.error.message}`);
-        } else {
-          console.error('API响应格式异常:', data);
-          alert('图片生成失败，响应格式异常');
-        }
+      if (data.imageUrl) {
+        setGeneratedImageUrl(data.imageUrl);
+        console.log('✨ 生成的图片URL:', data.imageUrl);
       } else {
         console.error('API响应格式异常:', data);
         alert('图片生成失败，响应格式异常');
@@ -573,14 +438,6 @@ ${generatedPrompt}
           <p className={styles.subtitle}>快速生成专业的图像处理Prompt，助力KA卫浴采销工作</p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <input
-            type="password"
-            placeholder="Ark API Key（可临时填）"
-            value={runtimeArkKey}
-            onChange={(e) => setRuntimeArkKey(e.target.value.trim())}
-            className={styles.input}
-            style={{ maxWidth: 260 }}
-          />
           <input
             type="password"
             placeholder="ImgBB API Key（可临时填）"

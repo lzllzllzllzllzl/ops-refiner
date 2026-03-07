@@ -8,7 +8,7 @@
 
 | 变量名 | 说明 | 获取方式 |
 |--------|------|---------|
-| `VITE_ARK_API_KEY` | 火山引擎豆包大模型 API Key | https://console.volcengine.com/ark |
+| `ARK_API_KEY` | 火山引擎豆包大模型 API Key（仅后端 Serverless 使用，不暴露前端） | https://console.volcengine.com/ark |
 
 ### 可选的环境变量
 

@@ -48,7 +48,7 @@ const STYLE_OPTIONS = [
 ];
 
 const ImagePromptGenerator: React.FC = () => {
-  const [promptType, setPromptType] = useState<'main_image' | 'virtual_bundle'>('main_image');
+  const [promptType, setPromptType] = useState<'main_image' | 'virtual_bundle' | 'refine_product'>('main_image');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
@@ -61,6 +61,18 @@ const ImagePromptGenerator: React.FC = () => {
   const [formData, setFormData] = useState<any>({
     productCount: 2,
   });
+
+  // 精细化优化相关状态
+  const [refineProductName, setRefineProductName] = useState('');
+  const [refineProductType, setRefineProductType] = useState('');
+  const [refineFeatures, setRefineFeatures] = useState('');
+  const [refineStyle, setRefineStyle] = useState('');
+  const [refineTargetAudience, setRefineTargetAudience] = useState('');
+  const [refineAdditionalInfo, setRefineAdditionalInfo] = useState('');
+  const [refinedTitle, setRefinedTitle] = useState('');
+  const [sellingPoints, setSellingPoints] = useState('');
+  const [refiningTitle, setRefiningTitle] = useState(false);
+  const [refiningSellingPoints, setRefiningSellingPoints] = useState(false);
 
   const [runtimeImgbbKey, setRuntimeImgbbKey] = useState('');
 
@@ -419,13 +431,102 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
       });
   };
 
-  const handleModeChange = (type: 'main_image' | 'virtual_bundle') => {
+  // AI优化标题
+  const optimizeTitle = async () => {
+    if (!refineProductName) {
+      alert('请输入商品名称');
+      return;
+    }
+
+    setRefiningTitle(true);
+    try {
+      const response = await fetch('/api/refine-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'title',
+          productName: refineProductName,
+          productType: refineProductType,
+          features: refineFeatures,
+          style: refineStyle,
+          targetAudience: refineTargetAudience,
+          additionalInfo: refineAdditionalInfo,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.result) {
+        setRefinedTitle(data.result);
+      } else {
+        alert('生成失败，响应格式异常');
+      }
+    } catch (error) {
+      console.error('优化标题失败:', error);
+      alert('优化标题失败: ' + (error instanceof Error ? error.message : '网络错误，请重试'));
+    } finally {
+      setRefiningTitle(false);
+    }
+  };
+
+  // AI生成卖点
+  const generateSellingPoints = async () => {
+    if (!refineProductName) {
+      alert('请输入商品名称');
+      return;
+    }
+
+    setRefiningSellingPoints(true);
+    try {
+      const response = await fetch('/api/refine-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sellingPoints',
+          productName: refineProductName,
+          productType: refineProductType,
+          features: refineFeatures,
+          style: refineStyle,
+          targetAudience: refineTargetAudience,
+          additionalInfo: refineAdditionalInfo,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.result) {
+        setSellingPoints(data.result);
+      } else {
+        alert('生成失败，响应格式异常');
+      }
+    } catch (error) {
+      console.error('生成卖点失败:', error);
+      alert('生成卖点失败: ' + (error instanceof Error ? error.message : '网络错误，请重试'));
+    } finally {
+      setRefiningSellingPoints(false);
+    }
+  };
+
+  const handleModeChange = (type: 'main_image' | 'virtual_bundle' | 'refine_product') => {
     setPromptType(type);
     setGeneratedPrompt('');
     setOptimizedPrompt('');
     setGeneratedImageUrl('');
     setUploadedImages([]);
     setFormData({ productCount: 2 });
+    // 重置精细化优化数据
+    if (type !== 'refine_product') {
+      setRefinedTitle('');
+      setSellingPoints('');
+    }
   };
 
   const maxImages = promptType === 'main_image' ? 1 : 5;
@@ -463,111 +564,44 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
           >
             🎨 虚拟组套
           </button>
+          <button
+            className={`${styles.modeButton} ${promptType === 'refine_product' ? styles.activeButton : ''}`}
+            onClick={() => handleModeChange('refine_product')}
+          >
+            ✨ 精细化优化
+          </button>
         </div>
       </div>
 
       <div className={styles.content}>
-        <div className={styles.leftPanel}>
-          <div className={styles.formCard}>
-            <h3 className={styles.cardTitle}>📷 商品图片</h3>
-            <p className={styles.hintText}>
-              {promptType === 'main_image'
-                ? '请上传1张商品图片'
-                : `请上传2-5张商品图片（当前：${uploadedImages.length}/${maxImages}张）`}
-            </p>
-
-            <div className={styles.imageUploadArea}>
-              <input
-                type="file"
-                accept="image/*"
-                multiple={promptType === 'virtual_bundle'}
-                onChange={handleImageSelect}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                disabled={uploadedImages.length >= maxImages || uploadingImage}
-              />
-
-              <button
-                className={styles.uploadButton}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadedImages.length >= maxImages || uploadingImage}
-              >
-                {uploadingImage ? '📤 上传中...' : '📁 选择图片'}
-              </button>
-            </div>
-
-            {uploadedImages.length > 0 && (
-              <div className={styles.imagePreviewContainer}>
-                {uploadedImages.map((url, index) => (
-                  <div key={index} className={styles.imagePreview}>
-                    <img src={url} alt={`商品图片 ${index + 1}`} />
-                    <button
-                      className={styles.removeImageButton}
-                      onClick={() => removeImage(index)}
-                    >
-                      ✕
-                    </button>
-                    <div className={styles.imageNumber}>{index + 1}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.formCard}>
-            <h3 className={styles.cardTitle}>商品信息</h3>
-
-            {promptType === 'main_image' ? (
-              <>
+        {/* 精细化优化模式：表单在右边 */}
+        {promptType === 'refine_product' ? (
+          <div className={styles.fullPanel}>
+            <div className={styles.refineSection}>
+              <div className={styles.formCard}>
+                <h3 className={styles.cardTitle}>📝 商品信息</h3>
+                
                 <div className={styles.formItem}>
-                  <label className={styles.label}>商品类型 *</label>
-                  <select
-                    className={styles.select}
-                    value={formData.productType || ''}
-                    onChange={(e) => handleChange('productType', e.target.value)}
-                  >
-                    <option value="">请选择商品类型</option>
-                    {PRODUCT_TYPES.map(item => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.formItem}>
-                  <label className={styles.label}>品牌名称</label>
+                  <label className={styles.label}>商品名称 *</label>
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="如：科勒、TOTO、箭牌等"
-                    value={formData.brand || ''}
-                    onChange={(e) => handleChange('brand', e.target.value)}
+                    placeholder="如：智能马桶一体机"
+                    value={refineProductName}
+                    onChange={(e) => setRefineProductName(e.target.value)}
                   />
                 </div>
 
                 <div className={styles.formItem}>
-                  <label className={styles.label}>优化场景 *</label>
+                  <label className={styles.label}>商品类型</label>
                   <select
                     className={styles.select}
-                    value={formData.scenario || ''}
-                    onChange={(e) => handleChange('scenario', e.target.value)}
+                    value={refineProductType}
+                    onChange={(e) => setRefineProductType(e.target.value)}
                   >
-                    <option value="">请选择优化场景</option>
-                    {MAIN_IMAGE_SCENARIOS.map(item => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.formItem}>
-                  <label className={styles.label}>设计风格 *</label>
-                  <select
-                    className={styles.select}
-                    value={formData.style || ''}
-                    onChange={(e) => handleChange('style', e.target.value)}
-                  >
-                    <option value="">请选择设计风格</option>
-                    {STYLE_OPTIONS.map(item => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                    <option value="">请选择商品类型</option>
+                    {PRODUCT_TYPES.map(item => (
+                      <option key={item.value} value={item.label}>{item.label}</option>
                     ))}
                   </select>
                 </div>
@@ -576,183 +610,406 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
                   <label className={styles.label}>商品特点</label>
                   <textarea
                     className={styles.textarea}
-                    placeholder="描述商品特点，如：智能马桶、悬浮设计、节水环保等"
+                    placeholder="描述商品特点，如：即热式清洗、暖风烘干、座圈加热等"
                     rows={3}
                     maxLength={200}
-                    value={formData.features || ''}
-                    onChange={(e) => handleChange('features', e.target.value)}
+                    value={refineFeatures}
+                    onChange={(e) => setRefineFeatures(e.target.value)}
                   />
-                  <span className={styles.count}>{(formData.features || '').length}/200</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className={styles.formItem}>
-                  <label className={styles.label}>组套场景 *</label>
-                  <select
-                    className={styles.select}
-                    value={formData.scenario || ''}
-                    onChange={(e) => handleChange('scenario', e.target.value)}
-                  >
-                    <option value="">请选择组套场景</option>
-                    {BUNDLE_SCENARIOS.map(item => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
-                    ))}
-                  </select>
+                  <span className={styles.count}>{refineFeatures.length}/200</span>
                 </div>
 
                 <div className={styles.formItem}>
-                  <label className={styles.label}>产品数量 *</label>
-                  <input
-                    type="number"
-                    className={styles.input}
-                    placeholder="2-10件"
-                    min={2}
-                    max={10}
-                    value={formData.productCount || 2}
-                    onChange={(e) => handleChange('productCount', parseInt(e.target.value, 10) || 2)}
-                  />
-                </div>
-
-                <div className={styles.formItem}>
-                  <label className={styles.label}>设计风格 *</label>
+                  <label className={styles.label}>设计风格</label>
                   <select
                     className={styles.select}
-                    value={formData.style || ''}
-                    onChange={(e) => handleChange('style', e.target.value)}
+                    value={refineStyle}
+                    onChange={(e) => setRefineStyle(e.target.value)}
                   >
                     <option value="">请选择设计风格</option>
                     {STYLE_OPTIONS.map(item => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.label}>{item.label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className={styles.formItem}>
-                  <label className={styles.label}>产品信息 *</label>
+                  <label className={styles.label}>目标受众</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="如：年轻白领、品质生活追求者"
+                    value={refineTargetAudience}
+                    onChange={(e) => setRefineTargetAudience(e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.formItem}>
+                  <label className={styles.label}>补充信息</label>
                   <textarea
                     className={styles.textarea}
-                    placeholder="描述需要组合的产品，如：智能马桶+浴室柜+龙头+花洒"
-                    rows={4}
-                    maxLength={300}
-                    value={formData.productDetails || ''}
-                    onChange={(e) => handleChange('productDetails', e.target.value)}
+                    placeholder="补充其他信息，如：促销信息、特殊卖点等"
+                    rows={2}
+                    maxLength={100}
+                    value={refineAdditionalInfo}
+                    onChange={(e) => setRefineAdditionalInfo(e.target.value)}
                   />
-                  <span className={styles.count}>{(formData.productDetails || '').length}/300</span>
+                  <span className={styles.count}>{refineAdditionalInfo.length}/100</span>
                 </div>
-              </>
-            )}
+              </div>
 
-            <div className={styles.formItem}>
-              <label className={styles.label}>其他要求</label>
-              <textarea
-                className={styles.textarea}
-                placeholder="补充特殊要求，如：添加促销标签、特定颜色要求等"
-                rows={2}
-                maxLength={100}
-                value={formData.additionalRequirements || ''}
-                onChange={(e) => handleChange('additionalRequirements', e.target.value)}
-              />
-              <span className={styles.count}>{(formData.additionalRequirements || '').length}/100</span>
+              <div className={styles.resultCard}>
+                <h3 className={styles.cardTitle}>✨ 精细化优化结果</h3>
+                <p className={styles.hintText}>填写商品信息后，点击下方按钮生成优化内容</p>
+
+                {/* 标题优化 */}
+                <div className={styles.refineBlock}>
+                  <div className={styles.refineBlockHeader}>
+                    <span className={styles.refineBlockTitle}>📌 AI优化标题</span>
+                    <button
+                      className={`${styles.refineButton} ${refiningTitle ? styles.refining : ''}`}
+                      onClick={optimizeTitle}
+                      disabled={refiningTitle || !refineProductName}
+                    >
+                      {refiningTitle ? '🔄 生成中...' : '🚀 生成标题'}
+                    </button>
+                  </div>
+                  {refinedTitle && (
+                    <div className={styles.refineResult}>
+                      <pre className={styles.refineText}>{refinedTitle}</pre>
+                      <button
+                        className={styles.copyButton}
+                        onClick={() => copyToClipboard(refinedTitle)}
+                      >
+                        {copied ? '✅ 已复制' : '📋 复制'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 卖点生成 */}
+                <div className={styles.refineBlock}>
+                  <div className={styles.refineBlockHeader}>
+                    <span className={styles.refineBlockTitle}>🎯 商品卖点</span>
+                    <button
+                      className={`${styles.refineButton} ${refiningSellingPoints ? styles.refining : ''}`}
+                      onClick={generateSellingPoints}
+                      disabled={refiningSellingPoints || !refineProductName}
+                    >
+                      {refiningSellingPoints ? '🔄 生成中...' : '🚀 生成卖点'}
+                    </button>
+                  </div>
+                  {sellingPoints && (
+                    <div className={styles.refineResult}>
+                      <pre className={styles.refineText}>{sellingPoints}</pre>
+                      <button
+                        className={styles.copyButton}
+                        onClick={() => copyToClipboard(sellingPoints)}
+                      >
+                        {copied ? '✅ 已复制' : '📋 复制'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-
-            <button className={styles.generateButton} onClick={generatePrompt}>
-              💡 生成Prompt
-            </button>
           </div>
-        </div>
+        ) : (
+          <>
+          <div className={styles.leftPanel}>
+            <div className={styles.formCard}>
+              <h3 className={styles.cardTitle}>📷 商品图片</h3>
+              <p className={styles.hintText}>
+                {promptType === 'main_image'
+                  ? '请上传1张商品图片'
+                  : `请上传2-5张商品图片（当前：${uploadedImages.length}/${maxImages}张）`}
+              </p>
 
-        <div className={styles.rightPanel}>
-          <div className={styles.resultCard}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>生成的Prompt</h3>
-              {generatedPrompt && (
-                <button className={styles.copyButton} onClick={() => copyToClipboard(optimizedPrompt || generatedPrompt)}>
-                  {copied ? '✅ 已复制' : '📋 复制'}
+              <div className={styles.imageUploadArea}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple={promptType === 'virtual_bundle'}
+                  onChange={handleImageSelect}
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  disabled={uploadedImages.length >= maxImages || uploadingImage}
+                />
+
+                <button
+                  className={styles.uploadButton}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadedImages.length >= maxImages || uploadingImage}
+                >
+                  {uploadingImage ? '📤 上传中...' : '📁 选择图片'}
                 </button>
+              </div>
+
+              {uploadedImages.length > 0 && (
+                <div className={styles.imagePreviewContainer}>
+                  {uploadedImages.map((url, index) => (
+                    <div key={index} className={styles.imagePreview}>
+                      <img src={url} alt={`商品图片 ${index + 1}`} />
+                      <button
+                        className={styles.removeImageButton}
+                        onClick={() => removeImage(index)}
+                      >
+                        ✕
+                      </button>
+                      <div className={styles.imageNumber}>{index + 1}</div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {generatedPrompt ? (
-              <div className={styles.promptContent}>
-                <pre className={styles.promptText}>{generatedPrompt}</pre>
+            <div className={styles.formCard}>
+              <h3 className={styles.cardTitle}>商品信息</h3>
 
-                <button
-                  className={`${styles.optimizeButton} ${optimizing ? styles.optimizing : ''}`}
-                  onClick={optimizePrompt}
-                  disabled={optimizing}
-                >
-                  {optimizing ? '🔄 AI优化中...' : '✨ AI优化'}
-                </button>
+              {promptType === 'main_image' ? (
+                <>
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>商品类型 *</label>
+                    <select
+                      className={styles.select}
+                      value={formData.productType || ''}
+                      onChange={(e) => handleChange('productType', e.target.value)}
+                    >
+                      <option value="">请选择商品类型</option>
+                      {PRODUCT_TYPES.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {optimizedPrompt && (
-                  <>
-                    <div className={styles.divider} />
-                    <div className={styles.optimizedSection}>
-                      <h4 className={styles.optimizedTitle}>✨ 优化后的Prompt</h4>
-                      <pre className={styles.promptText}>{optimizedPrompt}</pre>
-                    </div>
-                  </>
-                )}
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>品牌名称</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="如：科勒、TOTO、箭牌等"
+                      value={formData.brand || ''}
+                      onChange={(e) => handleChange('brand', e.target.value)}
+                    />
+                  </div>
 
-                <button
-                  className={`${styles.generateImageButton} ${generatingImage ? styles.generating : ''}`}
-                  onClick={generateImage}
-                  disabled={generatingImage || uploadedImages.length === 0 || (promptType === 'virtual_bundle' && uploadedImages.length < 2)}
-                >
-                  {generatingImage ? '🎨 生成图片中...' : '🎨 生成图片'}
-                </button>
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>优化场景 *</label>
+                    <select
+                      className={styles.select}
+                      value={formData.scenario || ''}
+                      onChange={(e) => handleChange('scenario', e.target.value)}
+                    >
+                      <option value="">请选择优化场景</option>
+                      {MAIN_IMAGE_SCENARIOS.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {generatedImageUrl && (
-                  <>
-                    <div className={styles.divider} />
-                    <div className={styles.generatedImageSection}>
-                      <h4 className={styles.optimizedTitle}>🎨 生成的图片</h4>
-                      <div className={styles.generatedImage}>
-                        <img src={generatedImageUrl} alt="生成的图片" />
-                      </div>
-                      <button
-                        className={styles.downloadButton}
-                        onClick={() => window.open(generatedImageUrl, '_blank')}
-                      >
-                        💾 下载原图
-                      </button>
-                    </div>
-                  </>
-                )}
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>设计风格 *</label>
+                    <select
+                      className={styles.select}
+                      value={formData.style || ''}
+                      onChange={(e) => handleChange('style', e.target.value)}
+                    >
+                      <option value="">请选择设计风格</option>
+                      {STYLE_OPTIONS.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className={styles.divider} />
-                <div className={styles.usageSteps}>
-                  <p className={styles.stepTitle}>使用步骤：</p>
-                  <p>1. 上传商品图片（主图优化1张，虚拟组套2-5张）</p>
-                  <p>2. 点击"AI优化"优化Prompt（可选）</p>
-                  <p>3. 点击"生成图片"直接生成设计图</p>
-                  <p>4. 或复制Prompt到其他AI工具使用</p>
-                </div>
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>商品特点</label>
+                    <textarea
+                      className={styles.textarea}
+                      placeholder="描述商品特点，如：智能马桶、悬浮设计、节水环保等"
+                      rows={3}
+                      maxLength={200}
+                      value={formData.features || ''}
+                      onChange={(e) => handleChange('features', e.target.value)}
+                    />
+                    <span className={styles.count}>{(formData.features || '').length}/200</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>组套场景 *</label>
+                    <select
+                      className={styles.select}
+                      value={formData.scenario || ''}
+                      onChange={(e) => handleChange('scenario', e.target.value)}
+                    >
+                      <option value="">请选择组套场景</option>
+                      {BUNDLE_SCENARIOS.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>产品数量 *</label>
+                    <input
+                      type="number"
+                      className={styles.input}
+                      placeholder="2-10件"
+                      min={2}
+                      max={10}
+                      value={formData.productCount || 2}
+                      onChange={(e) => handleChange('productCount', parseInt(e.target.value, 10) || 2)}
+                    />
+                  </div>
+
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>设计风格 *</label>
+                    <select
+                      className={styles.select}
+                      value={formData.style || ''}
+                      onChange={(e) => handleChange('style', e.target.value)}
+                    >
+                      <option value="">请选择设计风格</option>
+                      {STYLE_OPTIONS.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formItem}>
+                    <label className={styles.label}>产品信息 *</label>
+                    <textarea
+                      className={styles.textarea}
+                      placeholder="描述需要组合的产品，如：智能马桶+浴室柜+龙头+花洒"
+                      rows={4}
+                      maxLength={300}
+                      value={formData.productDetails || ''}
+                      onChange={(e) => handleChange('productDetails', e.target.value)}
+                    />
+                    <span className={styles.count}>{(formData.productDetails || '').length}/300</span>
+                  </div>
+                </>
+              )}
+
+              <div className={styles.formItem}>
+                <label className={styles.label}>其他要求</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="补充特殊要求，如：添加促销标签、特定颜色要求等"
+                  rows={2}
+                  maxLength={100}
+                  value={formData.additionalRequirements || ''}
+                  onChange={(e) => handleChange('additionalRequirements', e.target.value)}
+                />
+                <span className={styles.count}>{(formData.additionalRequirements || '').length}/100</span>
               </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyText}>请填写左侧表单，点击"生成Prompt"按钮生成优化提示词</p>
-              </div>
-            )}
-          </div>
 
-          <div className={styles.tipsCard}>
-            <h3 className={styles.cardTitle}>使用提示</h3>
-            <div className={styles.tipsContent}>
-              <p>
-                <span className={styles.tagBlue}>主图优化</span>
-                {' '}上传1张商品图片，优化图片质量
-              </p>
-              <p>
-                <span className={styles.tagGreen}>虚拟组套</span>
-                {' '}上传2-5张商品图片，合成组套图
-              </p>
-              <div className={styles.divider} />
-              <p className={styles.tipsText}>💡 提示：点击"生成图片"可直接生成设计图，无需复制到其他平台</p>
+              <button className={styles.generateButton} onClick={generatePrompt}>
+                💡 生成Prompt
+              </button>
             </div>
           </div>
-        </div>
+          </>
+        )}
+        {/* 仅在非精细化优化模式下显示右边面板 */}
+        {promptType !== 'refine_product' && (
+          <div className={styles.rightPanel}>
+            <div className={styles.resultCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>生成的Prompt</h3>
+                {generatedPrompt && (
+                  <button className={styles.copyButton} onClick={() => copyToClipboard(optimizedPrompt || generatedPrompt)}>
+                    {copied ? '✅ 已复制' : '📋 复制'}
+                  </button>
+                )}
+              </div>
+
+              {generatedPrompt ? (
+                <div className={styles.promptContent}>
+                  <pre className={styles.promptText}>{generatedPrompt}</pre>
+
+                  <button
+                    className={`${styles.optimizeButton} ${optimizing ? styles.optimizing : ''}`}
+                    onClick={optimizePrompt}
+                    disabled={optimizing}
+                  >
+                    {optimizing ? '🔄 AI优化中...' : '✨ AI优化'}
+                  </button>
+
+                  {optimizedPrompt && (
+                    <>
+                      <div className={styles.divider} />
+                      <div className={styles.optimizedSection}>
+                        <h4 className={styles.optimizedTitle}>✨ 优化后的Prompt</h4>
+                        <pre className={styles.promptText}>{optimizedPrompt}</pre>
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    className={`${styles.generateImageButton} ${generatingImage ? styles.generating : ''}`}
+                    onClick={generateImage}
+                    disabled={generatingImage || uploadedImages.length === 0 || (promptType === 'virtual_bundle' && uploadedImages.length < 2)}
+                  >
+                    {generatingImage ? '🎨 生成图片中...' : '🎨 生成图片'}
+                  </button>
+
+                  {generatedImageUrl && (
+                    <>
+                      <div className={styles.divider} />
+                      <div className={styles.generatedImageSection}>
+                        <h4 className={styles.optimizedTitle}>🎨 生成的图片</h4>
+                        <div className={styles.generatedImage}>
+                          <img src={generatedImageUrl} alt="生成的图片" />
+                        </div>
+                        <button
+                          className={styles.downloadButton}
+                          onClick={() => window.open(generatedImageUrl, '_blank')}
+                        >
+                          💾 下载原图
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  <div className={styles.divider} />
+                  <div className={styles.usageSteps}>
+                    <p className={styles.stepTitle}>使用步骤：</p>
+                    <p>1. 上传商品图片（主图优化1张，虚拟组套2-5张）</p>
+                    <p>2. 点击"AI优化"优化Prompt（可选）</p>
+                    <p>3. 点击"生成图片"直接生成设计图</p>
+                    <p>4. 或复制Prompt到其他AI工具使用</p>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  <p className={styles.emptyText}>请填写左侧表单，点击"生成Prompt"按钮生成优化提示词</p>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.tipsCard}>
+              <h3 className={styles.cardTitle}>使用提示</h3>
+              <div className={styles.tipsContent}>
+                <p>
+                  <span className={styles.tagBlue}>主图优化</span>
+                  {' '}上传1张商品图片，优化图片质量
+                </p>
+                <p>
+                  <span className={styles.tagGreen}>虚拟组套</span>
+                  {' '}上传2-5张商品图片，合成组套图
+                </p>
+                <p>
+                  <span className={styles.tagPurple}>精细化优化</span>
+                  {' '}AI生成优化标题和商品卖点
+                </p>
+                <div className={styles.divider} />
+                <p className={styles.tipsText}>💡 提示：点击"生成图片"可直接生成设计图，无需复制到其他平台</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

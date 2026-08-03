@@ -1,7 +1,5 @@
 // Vercel Serverless Function for generating image
-import type { IncomingMessage, ServerResponse } from 'http';
-type VercelRequest = IncomingMessage & { body: any; query: any; method: string };
-type VercelResponse = ServerResponse & { status: (code: number) => VercelResponse; json: (data: any) => void; send: (data: any) => void; setHeader: (name: string, value: string) => void; }
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

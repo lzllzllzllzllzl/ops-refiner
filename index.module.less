@@ -815,3 +815,379 @@
   background: linear-gradient(135deg, #c471ed 0%, #fa71cd 100%);
   border-radius: 4px;
 }
+
+
+// ============================================================
+// 数据层（Data Layer）- 数据洞察面板样式
+// ============================================================
+
+// 数据层外层包装
+.dataLayerWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+// 数据面板切换按钮
+.dataPanelToggle {
+  position: absolute;
+  top: 0;
+  right: -32px;
+  width: 32px;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  z-index: 10;
+  outline: none;
+  box-shadow: 2px 0 8px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    width: 36px;
+    right: -36px;
+  }
+}
+
+// 数据侧边栏
+.dataSidebar {
+  width: 320px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+
+  // 自定义滚动条
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 2px;
+  }
+}
+
+// 数据概览卡片
+.dataOverviewCard {
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.dataOverviewTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.dataOverviewGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dataOverviewItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.dataOverviewValue {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dataOverviewLabel {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+// 数据卡片通用
+.dataCard {
+  background: @bg-white;
+  border-radius: 8px;
+  box-shadow: @shadow;
+  overflow: hidden;
+}
+
+.dataCardHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: @text-primary;
+  background: @bg-white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &:hover {
+    background: #fafafa;
+  }
+}
+
+.dataCardBody {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// RFM 用户分层样式
+.rfmItem {
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.rfmItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.rfmLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: @text-primary;
+}
+
+.rfmPct {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rfmBar {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.rfmBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.rfmMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: @text-secondary;
+  margin-bottom: 4px;
+}
+
+.rfmInsight {
+  font-size: 12px;
+  color: @text-secondary;
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+.rfmStrategy {
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 500;
+}
+
+// 品类关联分析样式
+.correlationItem {
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.correlationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.correlationPair {
+  font-size: 13px;
+  font-weight: 600;
+  color: @text-primary;
+}
+
+.correlationRate {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.correlationBar {
+  height: 5px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.correlationBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.correlationMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: @text-secondary;
+  margin-bottom: 4px;
+}
+
+.correlationInsight {
+  font-size: 12px;
+  color: @text-secondary;
+  line-height: 1.5;
+}
+
+// 价格带分析样式
+.priceItem {
+  padding: 10px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border-top: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.priceItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.priceRange {
+  font-size: 13px;
+  font-weight: 600;
+  color: @text-primary;
+}
+
+.priceLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.priceBar {
+  height: 5px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.priceBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.priceMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: @text-secondary;
+  margin-bottom: 4px;
+}
+
+.pricePainPoint {
+  font-size: 12px;
+  color: @text-secondary;
+  line-height: 1.5;
+}
+
+// 策略推荐样式
+.strategyItem {
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.strategyTag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.strategyText {
+  display: block;
+  font-size: 12px;
+  color: @text-primary;
+  line-height: 1.6;
+}
+
+// 响应式 - 数据面板
+@media (max-width: 1400px) {
+  .dataSidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .dataLayerWrapper {
+    width: 100%;
+  }
+
+  .dataPanelToggle {
+    position: relative;
+    right: auto;
+    width: 100%;
+    writing-mode: horizontal-tb;
+    text-orientation: initial;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+  }
+
+  .dataSidebar {
+    width: 100%;
+    max-height: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-right: 0;
+
+    > div {
+      flex: 1;
+      min-width: 280px;
+    }
+  }
+}

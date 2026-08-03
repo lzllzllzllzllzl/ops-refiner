@@ -80,8 +80,7 @@ const PRICE_BANDS = [
 ];
 
 const ImagePromptGenerator: React.FC = () => {
-  const [promptType, setPromptType] = useState<'main_image' | 'virtual_bundle' | 'refine_product'>('main_image');
-  const [dataPanelOpen, setDataPanelOpen] = useState(true);
+  const [promptType, setPromptType] = useState<'data_insight' | 'main_image' | 'virtual_bundle' | 'refine_product'>('data_insight');
   const [expandedInsight, setExpandedInsight] = useState<string | null>('rfm');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
@@ -549,7 +548,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
     }
   };
 
-  const handleModeChange = (type: 'main_image' | 'virtual_bundle' | 'refine_product') => {
+  const handleModeChange = (type: 'data_insight' | 'main_image' | 'virtual_bundle' | 'refine_product') => {
     setPromptType(type);
     setGeneratedPrompt('');
     setOptimizedPrompt('');
@@ -587,6 +586,12 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
       <div className={styles.modeCard}>
         <div className={styles.modeButtons}>
           <button
+            className={`${styles.modeButton} ${promptType === 'data_insight' ? styles.activeButton : ''}`}
+            onClick={() => handleModeChange('data_insight')}
+          >
+            📊 数据洞察
+          </button>
+          <button
             className={`${styles.modeButton} ${promptType === 'main_image' ? styles.activeButton : ''}`}
             onClick={() => handleModeChange('main_image')}
           >
@@ -607,19 +612,10 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
         </div>
       </div>
 
-      {/* 主体布局：数据侧边栏 + 内容区 */}
-      <div className={styles.mainLayout}>
-      {/* 数据层 Data Layer - 左侧数据洞察面板 */}
-      <div className={styles.dataLayerWrapper}>
-        <button
-          className={styles.dataPanelToggle}
-          onClick={() => setDataPanelOpen(!dataPanelOpen)}
-          title={dataPanelOpen ? '收起数据面板' : '展开数据面板'}
-        >
-          {dataPanelOpen ? '◀' : '▶'} 数据洞察
-        </button>
-        {dataPanelOpen && (
-          <div className={styles.dataSidebar}>
+      <div className={styles.content}>
+        {/* 数据洞察模式 */}
+        {promptType === 'data_insight' && (
+          <div className={styles.dataInsightPanel}>
             {/* 核心数据概览 */}
             <div className={styles.dataOverviewCard}>
               <div className={styles.dataOverviewTitle}>📊 卫浴品类数据概览</div>
@@ -643,147 +639,138 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
               </div>
             </div>
 
-            {/* RFM 用户分层 */}
-            <div className={styles.dataCard}>
-              <button
-                className={styles.dataCardHeader}
-                onClick={() => setExpandedInsight(expandedInsight === 'rfm' ? null : 'rfm')}
-              >
-                <span>👥 RFM 用户分层</span>
-                <span>{expandedInsight === 'rfm' ? '▾' : '▸'}</span>
-              </button>
-              {expandedInsight === 'rfm' && (
-                <div className={styles.dataCardBody}>
-                  {RFM_SEGMENTS.map((seg) => (
-                    <div key={seg.id} className={styles.rfmItem}>
-                      <div className={styles.rfmItemHeader}>
-                        <span className={styles.rfmLabel}>{seg.icon} {seg.label}</span>
-                        <span className={styles.rfmPct} style={{ color: seg.color }}>{seg.pct}%</span>
+            <div className={styles.dataInsightGrid}>
+              {/* RFM 用户分层 */}
+              <div className={styles.dataCard}>
+                <button
+                  className={styles.dataCardHeader}
+                  onClick={() => setExpandedInsight(expandedInsight === 'rfm' ? null : 'rfm')}
+                >
+                  <span>👥 RFM 用户分层</span>
+                  <span>{expandedInsight === 'rfm' ? '▾' : '▸'}</span>
+                </button>
+                {expandedInsight === 'rfm' && (
+                  <div className={styles.dataCardBody}>
+                    {RFM_SEGMENTS.map((seg) => (
+                      <div key={seg.id} className={styles.rfmItem}>
+                        <div className={styles.rfmItemHeader}>
+                          <span className={styles.rfmLabel}>{seg.icon} {seg.label}</span>
+                          <span className={styles.rfmPct} style={{ color: seg.color }}>{seg.pct}%</span>
+                        </div>
+                        <div className={styles.rfmBar}>
+                          <div className={styles.rfmBarFill} style={{ width: `${seg.pct}%`, backgroundColor: seg.color }} />
+                        </div>
+                        <div className={styles.rfmMeta}>
+                          <span>{seg.userCount.toLocaleString()}人</span>
+                          <span>客单价 ¥{seg.avgSpend.toLocaleString()}</span>
+                        </div>
+                        <div className={styles.rfmInsight}>{seg.desc}</div>
+                        <div className={styles.rfmStrategy}>→ {seg.strategy}</div>
                       </div>
-                      <div className={styles.rfmBar}>
-                        <div
-                          className={styles.rfmBarFill}
-                          style={{ width: `${seg.pct}%`, backgroundColor: seg.color }}
-                        />
-                      </div>
-                      <div className={styles.rfmMeta}>
-                        <span>{seg.userCount.toLocaleString()}人</span>
-                        <span>客单价 ¥{seg.avgSpend.toLocaleString()}</span>
-                      </div>
-                      <div className={styles.rfmInsight}>{seg.desc}</div>
-                      <div className={styles.rfmStrategy}>→ {seg.strategy}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* 品类关联分析 */}
-            <div className={styles.dataCard}>
-              <button
-                className={styles.dataCardHeader}
-                onClick={() => setExpandedInsight(expandedInsight === 'category' ? null : 'category')}
-              >
-                <span>🔗 品类关联分析</span>
-                <span>{expandedInsight === 'category' ? '▾' : '▸'}</span>
-              </button>
-              {expandedInsight === 'category' && (
-                <div className={styles.dataCardBody}>
-                  {CATEGORY_CORRELATIONS.map((item, idx) => (
-                    <div key={idx} className={styles.correlationItem}>
-                      <div className={styles.correlationHeader}>
-                        <span className={styles.correlationPair}>{item.from} + {item.to}</span>
-                        <span className={styles.correlationRate} style={{ color: item.rate >= 30 ? '#E1251B' : '#fa8c16' }}>{item.rate}%</span>
+              {/* 品类关联分析 */}
+              <div className={styles.dataCard}>
+                <button
+                  className={styles.dataCardHeader}
+                  onClick={() => setExpandedInsight(expandedInsight === 'category' ? null : 'category')}
+                >
+                  <span>🔗 品类关联分析</span>
+                  <span>{expandedInsight === 'category' ? '▾' : '▸'}</span>
+                </button>
+                {expandedInsight === 'category' && (
+                  <div className={styles.dataCardBody}>
+                    {CATEGORY_CORRELATIONS.map((item, idx) => (
+                      <div key={idx} className={styles.correlationItem}>
+                        <div className={styles.correlationHeader}>
+                          <span className={styles.correlationPair}>{item.from} + {item.to}</span>
+                          <span className={styles.correlationRate} style={{ color: item.rate >= 30 ? '#E1251B' : '#fa8c16' }}>{item.rate}%</span>
+                        </div>
+                        <div className={styles.correlationBar}>
+                          <div className={styles.correlationBarFill} style={{ width: `${(item.rate / 40) * 100}%`, backgroundColor: item.rate >= 30 ? '#E1251B' : '#fa8c16' }} />
+                        </div>
+                        <div className={styles.correlationMeta}>
+                          <span>关联度 {item.rate}%</span>
+                          <span>Lift值 {item.lift}x</span>
+                        </div>
+                        <div className={styles.correlationInsight}>{item.insight}</div>
                       </div>
-                      <div className={styles.correlationBar}>
-                        <div
-                          className={styles.correlationBarFill}
-                          style={{ width: `${(item.rate / 40) * 100}%`, backgroundColor: item.rate >= 30 ? '#E1251B' : '#fa8c16' }}
-                        />
-                      </div>
-                      <div className={styles.correlationMeta}>
-                        <span>关联度 {item.rate}%</span>
-                        <span>Lift值 {item.lift}x</span>
-                      </div>
-                      <div className={styles.correlationInsight}>{item.insight}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* 价格带分析 */}
-            <div className={styles.dataCard}>
-              <button
-                className={styles.dataCardHeader}
-                onClick={() => setExpandedInsight(expandedInsight === 'price' ? null : 'price')}
-              >
-                <span>💰 价格带分析</span>
-                <span>{expandedInsight === 'price' ? '▾' : '▸'}</span>
-              </button>
-              {expandedInsight === 'price' && (
-                <div className={styles.dataCardBody}>
-                  {PRICE_BANDS.map((band, idx) => (
-                    <div key={idx} className={styles.priceItem} style={{ borderLeft: `3px solid ${band.color}` }}>
-                      <div className={styles.priceItemHeader}>
-                        <span className={styles.priceRange}>¥{band.range}</span>
-                        <span className={styles.priceLabel} style={{ color: band.color }}>{band.label}</span>
+              {/* 价格带分析 */}
+              <div className={styles.dataCard}>
+                <button
+                  className={styles.dataCardHeader}
+                  onClick={() => setExpandedInsight(expandedInsight === 'price' ? null : 'price')}
+                >
+                  <span>💰 价格带分析</span>
+                  <span>{expandedInsight === 'price' ? '▾' : '▸'}</span>
+                </button>
+                {expandedInsight === 'price' && (
+                  <div className={styles.dataCardBody}>
+                    {PRICE_BANDS.map((band, idx) => (
+                      <div key={idx} className={styles.priceItem} style={{ borderLeft: `3px solid ${band.color}` }}>
+                        <div className={styles.priceItemHeader}>
+                          <span className={styles.priceRange}>¥{band.range}</span>
+                          <span className={styles.priceLabel} style={{ color: band.color }}>{band.label}</span>
+                        </div>
+                        <div className={styles.priceBar}>
+                          <div className={styles.priceBarFill} style={{ width: `${(band.pct / 30) * 100}%`, backgroundColor: band.color }} />
+                        </div>
+                        <div className={styles.priceMeta}>
+                          <span>{band.orders.toLocaleString()}单</span>
+                          <span>占比{band.pct}%</span>
+                          <span>转化{band.conversion}%</span>
+                        </div>
+                        <div className={styles.pricePainPoint}>{band.painPoint}</div>
                       </div>
-                      <div className={styles.priceBar}>
-                        <div
-                          className={styles.priceBarFill}
-                          style={{ width: `${(band.pct / 30) * 100}%`, backgroundColor: band.color }}
-                        />
-                      </div>
-                      <div className={styles.priceMeta}>
-                        <span>{band.orders.toLocaleString()}单</span>
-                        <span>占比{band.pct}%</span>
-                        <span>转化{band.conversion}%</span>
-                      </div>
-                      <div className={styles.pricePainPoint}>{band.painPoint}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* 策略推荐 */}
-            <div className={styles.dataCard}>
-              <button
-                className={styles.dataCardHeader}
-                onClick={() => setExpandedInsight(expandedInsight === 'strategy' ? null : 'strategy')}
-              >
-                <span>💡 数据驱动策略</span>
-                <span>{expandedInsight === 'strategy' ? '▾' : '▸'}</span>
-              </button>
-              {expandedInsight === 'strategy' && (
-                <div className={styles.dataCardBody}>
-                  <div className={styles.strategyItem}>
-                    <span className={styles.strategyTag}>主图优化</span>
-                    <span className={styles.strategyText}>2K-3K价格带转化率仅2.3%，用场景化主图降低决策门槛，目标提升至3.5%</span>
+              {/* 数据驱动策略 */}
+              <div className={styles.dataCard}>
+                <button
+                  className={styles.dataCardHeader}
+                  onClick={() => setExpandedInsight(expandedInsight === 'strategy' ? null : 'strategy')}
+                >
+                  <span>💡 数据驱动策略</span>
+                  <span>{expandedInsight === 'strategy' ? '▾' : '▸'}</span>
+                </button>
+                {expandedInsight === 'strategy' && (
+                  <div className={styles.dataCardBody}>
+                    <div className={styles.strategyItem}>
+                      <span className={styles.strategyTag}>主图优化</span>
+                      <span className={styles.strategyText}>2K-3K价格带转化率仅2.3%，用场景化主图降低决策门槛，目标提升至3.5%</span>
+                    </div>
+                    <div className={styles.strategyItem}>
+                      <span className={styles.strategyTag}>虚拟组套</span>
+                      <span className={styles.strategyText}>花洒+浴室柜关联率32%，组套可提客单价35%，优先推卫浴套装组合</span>
+                    </div>
+                    <div className={styles.strategyItem}>
+                      <span className={styles.strategyTag}>精细化优化</span>
+                      <span className={styles.strategyText}>潜力用户(40%)用"用户语言"替代"技术语言"，场景化文案提升点击率</span>
+                    </div>
+                    <div className={styles.strategyItem}>
+                      <span className={styles.strategyTag}>人群策略</span>
+                      <span className={styles.strategyText}>高价值用户(18%)贡献42%GMV，推送高端智能款+限量联名</span>
+                    </div>
                   </div>
-                  <div className={styles.strategyItem}>
-                    <span className={styles.strategyTag}>虚拟组套</span>
-                    <span className={styles.strategyText}>花洒+浴室柜关联率32%，组套可提客单价35%，优先推卫浴套装组合</span>
-                  </div>
-                  <div className={styles.strategyItem}>
-                    <span className={styles.strategyTag}>精细化优化</span>
-                    <span className={styles.strategyText}>潜力用户(40%)用"用户语言"替代"技术语言"，场景化文案提升点击率</span>
-                  </div>
-                  <div className={styles.strategyItem}>
-                    <span className={styles.strategyTag}>人群策略</span>
-                    <span className={styles.strategyText}>高价值用户(18%)贡献42%GMV，推送高端智能款+限量联名</span>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
-      </div>
 
-      <div className={styles.content}>
         {/* 精细化优化模式：表单在右边 */}
-        {promptType === 'refine_product' ? (
+        {promptType === 'data_insight' ? null : promptType === 'refine_product' ? (
           <div className={styles.fullPanel}>
             <div className={styles.refineSection}>
               <div className={styles.formCard}>
@@ -1121,7 +1108,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
           </>
         )}
         {/* 仅在非精细化优化模式下显示右边面板 */}
-        {promptType !== 'refine_product' && (
+        {promptType !== 'refine_product' && promptType !== 'data_insight' && (
           <div className={styles.rightPanel}>
             <div className={styles.resultCard}>
               <div className={styles.cardHeader}>
@@ -1218,7 +1205,6 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
             </div>
           </div>
         )}
-      </div>
       </div>
     </div>
   );

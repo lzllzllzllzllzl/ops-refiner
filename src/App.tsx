@@ -607,6 +607,8 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
         </div>
       </div>
 
+      {/* 主体布局：数据侧边栏 + 内容区 */}
+      <div className={styles.mainLayout}>
       {/* 数据层 Data Layer - 左侧数据洞察面板 */}
       <div className={styles.dataLayerWrapper}>
         <button
@@ -1216,6 +1218,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

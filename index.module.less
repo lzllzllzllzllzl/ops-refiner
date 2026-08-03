@@ -828,6 +828,27 @@
   align-items: flex-start;
 }
 
+
+
+// 数据洞察独立面板（Tab模式）
+.dataInsightPanel {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dataInsightGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+  .dataInsightGrid {
+    grid-template-columns: 1fr;
+  }
+}
 // ============================================================
 // 数据层（Data Layer）- 数据洞察面板样式
 // ============================================================

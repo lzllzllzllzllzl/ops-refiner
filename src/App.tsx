@@ -47,8 +47,42 @@ const STYLE_OPTIONS = [
   { value: 'industrial', label: '工业风' },
 ];
 
+// ============================================================
+// 数据层（Data Layer）- 卫浴品类数据洞察
+// ============================================================
+
+// RFM 用户分层数据
+const RFM_SEGMENTS = [
+  { id: 'champion', label: '高价值用户', icon: '🏆', userCount: 12680, pct: 18, avgSpend: 4280, desc: '近30天复购3次+，客单价>3K', strategy: '推高端智能款、限量联名', color: '#E1251B' },
+  { id: 'potential', label: '潜力用户', icon: '📈', userCount: 28450, pct: 40, avgSpend: 1860, desc: '近60天活跃，购买1-2次', strategy: '场景化主图提升转化、组套推荐提客单', color: '#fa8c16' },
+  { id: 'at_risk', label: '流失风险', icon: '⚠️', userCount: 15320, pct: 22, avgSpend: 680, desc: '近90天未购买，历史客单价低', strategy: '促销组合拉回、低价引流款触达', color: '#8c8c8c' },
+  { id: 'new_user', label: '新客用户', icon: '🆕', userCount: 14550, pct: 20, avgSpend: 520, desc: '首次访问/首次购买', strategy: '首单优惠、场景化详情页降低决策门槛', color: '#52c41a' },
+];
+
+// 品类关联分析
+const CATEGORY_CORRELATIONS = [
+  { from: '淋浴花洒', to: '浴室柜', rate: 32, lift: 2.4, insight: '花洒用户32%加购浴室柜，组套可提客单价35%' },
+  { from: '龙头', to: '面盆', rate: 35, lift: 2.8, insight: '强关联，虚拟组套首选搭配' },
+  { from: '智能马桶', to: '浴室柜', rate: 28, lift: 2.1, insight: 'Top1组合，打造"智能卫浴套装"' },
+  { from: '马桶', to: '龙头', rate: 24, lift: 1.8, insight: '主图展示完整卫浴空间提升点击率22%' },
+  { from: '浴室柜', to: '五金挂件', rate: 21, lift: 1.6, insight: '组套图加入挂件提升转化' },
+  { from: '浴缸', to: '花洒', rate: 19, lift: 1.5, insight: '定位高端，主图突出品质感' },
+];
+
+// 价格带分析
+const PRICE_BANDS = [
+  { range: '0-500', label: '引流款', orders: 34200, pct: 28, conversion: 4.2, painPoint: '价格敏感型，主图突出性价比', color: '#52c41a' },
+  { range: '500-1K', label: '入门款', orders: 28800, pct: 24, conversion: 3.8, painPoint: '注重基础功能，展示实用性', color: '#1890ff' },
+  { range: '1K-2K', label: '中端款', orders: 25200, pct: 21, conversion: 3.1, painPoint: '品质与价格平衡，需场景化打动', color: '#722ed1' },
+  { range: '2K-3K', label: '核心价格带', orders: 18000, pct: 15, conversion: 2.3, painPoint: '痛点：犹豫期长，需场景化主图+组套', color: '#E1251B' },
+  { range: '3K-5K', label: '高端款', orders: 10800, pct: 9, conversion: 1.8, painPoint: '重品质感，传递高端生活方式', color: '#fa8c16' },
+  { range: '5K+', label: '旗舰款', orders: 3600, pct: 3, conversion: 1.2, painPoint: '极低转化率，极致视觉+精准投放', color: '#eb2f96' },
+];
+
 const ImagePromptGenerator: React.FC = () => {
   const [promptType, setPromptType] = useState<'main_image' | 'virtual_bundle' | 'refine_product'>('main_image');
+  const [dataPanelOpen, setDataPanelOpen] = useState(true);
+  const [expandedInsight, setExpandedInsight] = useState<string | null>('rfm');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
@@ -571,6 +605,178 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
             ✨ 精细化优化
           </button>
         </div>
+      </div>
+
+      {/* 数据层 Data Layer - 左侧数据洞察面板 */}
+      <div className={styles.dataLayerWrapper}>
+        <button
+          className={styles.dataPanelToggle}
+          onClick={() => setDataPanelOpen(!dataPanelOpen)}
+          title={dataPanelOpen ? '收起数据面板' : '展开数据面板'}
+        >
+          {dataPanelOpen ? '◀' : '▶'} 数据洞察
+        </button>
+        {dataPanelOpen && (
+          <div className={styles.dataSidebar}>
+            {/* 核心数据概览 */}
+            <div className={styles.dataOverviewCard}>
+              <div className={styles.dataOverviewTitle}>📊 卫浴品类数据概览</div>
+              <div className={styles.dataOverviewGrid}>
+                <div className={styles.dataOverviewItem}>
+                  <span className={styles.dataOverviewValue}>7.1亿</span>
+                  <span className={styles.dataOverviewLabel}>品类GMV</span>
+                </div>
+                <div className={styles.dataOverviewItem}>
+                  <span className={styles.dataOverviewValue}>7.1万</span>
+                  <span className={styles.dataOverviewLabel}>活跃用户</span>
+                </div>
+                <div className={styles.dataOverviewItem}>
+                  <span className={styles.dataOverviewValue}>2.8%</span>
+                  <span className={styles.dataOverviewLabel}>平均转化率</span>
+                </div>
+                <div className={styles.dataOverviewItem}>
+                  <span className={styles.dataOverviewValue}>¥1,580</span>
+                  <span className={styles.dataOverviewLabel}>平均客单价</span>
+                </div>
+              </div>
+            </div>
+
+            {/* RFM 用户分层 */}
+            <div className={styles.dataCard}>
+              <button
+                className={styles.dataCardHeader}
+                onClick={() => setExpandedInsight(expandedInsight === 'rfm' ? null : 'rfm')}
+              >
+                <span>👥 RFM 用户分层</span>
+                <span>{expandedInsight === 'rfm' ? '▾' : '▸'}</span>
+              </button>
+              {expandedInsight === 'rfm' && (
+                <div className={styles.dataCardBody}>
+                  {RFM_SEGMENTS.map((seg) => (
+                    <div key={seg.id} className={styles.rfmItem}>
+                      <div className={styles.rfmItemHeader}>
+                        <span className={styles.rfmLabel}>{seg.icon} {seg.label}</span>
+                        <span className={styles.rfmPct} style={{ color: seg.color }}>{seg.pct}%</span>
+                      </div>
+                      <div className={styles.rfmBar}>
+                        <div
+                          className={styles.rfmBarFill}
+                          style={{ width: `${seg.pct}%`, backgroundColor: seg.color }}
+                        />
+                      </div>
+                      <div className={styles.rfmMeta}>
+                        <span>{seg.userCount.toLocaleString()}人</span>
+                        <span>客单价 ¥{seg.avgSpend.toLocaleString()}</span>
+                      </div>
+                      <div className={styles.rfmInsight}>{seg.desc}</div>
+                      <div className={styles.rfmStrategy}>→ {seg.strategy}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 品类关联分析 */}
+            <div className={styles.dataCard}>
+              <button
+                className={styles.dataCardHeader}
+                onClick={() => setExpandedInsight(expandedInsight === 'category' ? null : 'category')}
+              >
+                <span>🔗 品类关联分析</span>
+                <span>{expandedInsight === 'category' ? '▾' : '▸'}</span>
+              </button>
+              {expandedInsight === 'category' && (
+                <div className={styles.dataCardBody}>
+                  {CATEGORY_CORRELATIONS.map((item, idx) => (
+                    <div key={idx} className={styles.correlationItem}>
+                      <div className={styles.correlationHeader}>
+                        <span className={styles.correlationPair}>{item.from} + {item.to}</span>
+                        <span className={styles.correlationRate} style={{ color: item.rate >= 30 ? '#E1251B' : '#fa8c16' }}>{item.rate}%</span>
+                      </div>
+                      <div className={styles.correlationBar}>
+                        <div
+                          className={styles.correlationBarFill}
+                          style={{ width: `${(item.rate / 40) * 100}%`, backgroundColor: item.rate >= 30 ? '#E1251B' : '#fa8c16' }}
+                        />
+                      </div>
+                      <div className={styles.correlationMeta}>
+                        <span>关联度 {item.rate}%</span>
+                        <span>Lift值 {item.lift}x</span>
+                      </div>
+                      <div className={styles.correlationInsight}>{item.insight}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 价格带分析 */}
+            <div className={styles.dataCard}>
+              <button
+                className={styles.dataCardHeader}
+                onClick={() => setExpandedInsight(expandedInsight === 'price' ? null : 'price')}
+              >
+                <span>💰 价格带分析</span>
+                <span>{expandedInsight === 'price' ? '▾' : '▸'}</span>
+              </button>
+              {expandedInsight === 'price' && (
+                <div className={styles.dataCardBody}>
+                  {PRICE_BANDS.map((band, idx) => (
+                    <div key={idx} className={styles.priceItem} style={{ borderLeft: `3px solid ${band.color}` }}>
+                      <div className={styles.priceItemHeader}>
+                        <span className={styles.priceRange}>¥{band.range}</span>
+                        <span className={styles.priceLabel} style={{ color: band.color }}>{band.label}</span>
+                      </div>
+                      <div className={styles.priceBar}>
+                        <div
+                          className={styles.priceBarFill}
+                          style={{ width: `${(band.pct / 30) * 100}%`, backgroundColor: band.color }}
+                        />
+                      </div>
+                      <div className={styles.priceMeta}>
+                        <span>{band.orders.toLocaleString()}单</span>
+                        <span>占比{band.pct}%</span>
+                        <span>转化{band.conversion}%</span>
+                      </div>
+                      <div className={styles.pricePainPoint}>{band.painPoint}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 策略推荐 */}
+            <div className={styles.dataCard}>
+              <button
+                className={styles.dataCardHeader}
+                onClick={() => setExpandedInsight(expandedInsight === 'strategy' ? null : 'strategy')}
+              >
+                <span>💡 数据驱动策略</span>
+                <span>{expandedInsight === 'strategy' ? '▾' : '▸'}</span>
+              </button>
+              {expandedInsight === 'strategy' && (
+                <div className={styles.dataCardBody}>
+                  <div className={styles.strategyItem}>
+                    <span className={styles.strategyTag}>主图优化</span>
+                    <span className={styles.strategyText}>2K-3K价格带转化率仅2.3%，用场景化主图降低决策门槛，目标提升至3.5%</span>
+                  </div>
+                  <div className={styles.strategyItem}>
+                    <span className={styles.strategyTag}>虚拟组套</span>
+                    <span className={styles.strategyText}>花洒+浴室柜关联率32%，组套可提客单价35%，优先推卫浴套装组合</span>
+                  </div>
+                  <div className={styles.strategyItem}>
+                    <span className={styles.strategyTag}>精细化优化</span>
+                    <span className={styles.strategyText}>潜力用户(40%)用"用户语言"替代"技术语言"，场景化文案提升点击率</span>
+                  </div>
+                  <div className={styles.strategyItem}>
+                    <span className={styles.strategyTag}>人群策略</span>
+                    <span className={styles.strategyText}>高价值用户(18%)贡献42%GMV，推送高端智能款+限量联名</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={styles.content}>

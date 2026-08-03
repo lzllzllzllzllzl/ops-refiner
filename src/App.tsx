@@ -81,7 +81,7 @@ const PRICE_BANDS = [
 
 const ImagePromptGenerator: React.FC = () => {
   const [promptType, setPromptType] = useState<'data_insight' | 'main_image' | 'virtual_bundle' | 'refine_product'>('data_insight');
-  const [expandedInsight, setExpandedInsight] = useState<string | null>('rfm');
+  const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set(['rfm', 'category', 'price', 'strategy']));
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
@@ -568,7 +568,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>💡 卫浴主图AI优化平台</h1>
+          <h1 className={styles.title}>💡 商品优化智能体</h1>
           <p className={styles.subtitle}>快速生成专业的图像处理Prompt，助力KA卫浴采销工作</p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -649,7 +649,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
                   <span>👥 RFM 用户分层</span>
                   <span>{expandedInsight === 'rfm' ? '▾' : '▸'}</span>
                 </button>
-                {expandedInsight === 'rfm' && (
+                {expandedInsights.has('rfm') && (
                   <div className={styles.dataCardBody}>
                     {RFM_SEGMENTS.map((seg) => (
                       <div key={seg.id} className={styles.rfmItem}>
@@ -681,7 +681,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
                   <span>🔗 品类关联分析</span>
                   <span>{expandedInsight === 'category' ? '▾' : '▸'}</span>
                 </button>
-                {expandedInsight === 'category' && (
+                {expandedInsights.has('category') && (
                   <div className={styles.dataCardBody}>
                     {CATEGORY_CORRELATIONS.map((item, idx) => (
                       <div key={idx} className={styles.correlationItem}>
@@ -712,7 +712,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
                   <span>💰 价格带分析</span>
                   <span>{expandedInsight === 'price' ? '▾' : '▸'}</span>
                 </button>
-                {expandedInsight === 'price' && (
+                {expandedInsights.has('price') && (
                   <div className={styles.dataCardBody}>
                     {PRICE_BANDS.map((band, idx) => (
                       <div key={idx} className={styles.priceItem} style={{ borderLeft: `3px solid ${band.color}` }}>
@@ -744,7 +744,7 @@ ${formData.additionalRequirements ? `\n其他要求：${formData.additionalRequi
                   <span>💡 数据驱动策略</span>
                   <span>{expandedInsight === 'strategy' ? '▾' : '▸'}</span>
                 </button>
-                {expandedInsight === 'strategy' && (
+                {expandedInsights.has('strategy') && (
                   <div className={styles.dataCardBody}>
                     <div className={styles.strategyItem}>
                       <span className={styles.strategyTag}>主图优化</span>
